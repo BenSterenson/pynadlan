@@ -12,7 +12,7 @@ pip install -e .
 
 ```python
 import asyncio
-from pynadlan.api import get_avg_prices, get_rent_prices
+from pynadlan.api import get_avg_prices, get_rent_prices, get_autocomplete_lists
 
 async def main():
     query = "רמת גן"  # city or neighborhood
@@ -43,6 +43,11 @@ if __name__ == "__main__":
 - `get_rent_prices(query: str, rooms: int | list[int] | None = None) -> dict`
   - Returns the latest rent prices keyed by `rent_{rooms}_price`.
   - Same filtering behavior as `get_avg_prices`.
+
+- `get_autocomplete_lists() -> dict`
+  - Returns static lists for autocomplete:
+    - `cities`: array of cities
+    - `cities_and_neighborhoods`: array of cities and neighborhoods
 
 ### Notes
 

@@ -1,5 +1,5 @@
 import asyncio
-from pynadlan.api import get_avg_prices, get_rent_prices
+from pynadlan.api import get_avg_prices, get_rent_prices, get_autocomplete_lists
 
 
 async def main():
@@ -17,6 +17,11 @@ async def main():
 
     rent_2 = await get_rent_prices(query, rooms=2)
     print("Rent 2 rooms:", rent_2)
+
+    # Autocomplete lists (static)
+    lists = get_autocomplete_lists()
+    print("First 5 cities:", lists["cities"][:5])
+    print("First 5 cities+neighborhoods:", lists["cities_and_neighborhoods"][:5])
 
 
 if __name__ == "__main__":

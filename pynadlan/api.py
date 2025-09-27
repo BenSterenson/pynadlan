@@ -1,6 +1,7 @@
 import httpx
 from typing import Any, Optional, Union
 from urllib.parse import quote
+from .locations import CITIES, CITIES_AND_NEIGHBORHOODS
 
 
 async def _fetch_histograms(query: str) -> dict[str, Any]:
@@ -110,3 +111,18 @@ async def get_rent_prices(query: str, rooms: Optional[Union[int, list[int]]] = N
 
     payload = await _fetch_histograms(query)
     return _extract_latest_by_prefix(payload, prefix="rent_", rooms=rooms_list)
+
+
+def get_autocomplete_lists() -> dict[str, list[str]]:
+    """
+    Return static autocomplete lists for cities and for cities+neighborhoods.
+    Structure:
+    {
+        "cities": [...],
+        "cities_and_neighborhoods": [...]
+    }
+    """
+    return {
+        "cities": list(CITIES),
+        "cities_and_neighborhoods": list(CITIES_AND_NEIGHBORHOODS),
+    }
