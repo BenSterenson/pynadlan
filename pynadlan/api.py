@@ -10,6 +10,7 @@ async def _fetch_histograms(query: str) -> dict[str, Any]:
 
     Returns the parsed JSON payload.
     """
+    query = query.replace(", ", "_")
     encoded_query = quote(query, safe="")
     url = f"https://dirobot.co.il/api/analysis/histograms/{encoded_query}"
 
