@@ -401,8 +401,8 @@ async def get_street_deals(
     Example return:
     {
         "city": "רמת גן",
-        "street": "רות",
-        "cityStreet": "רמת גן_רות",
+        "street": "התובל",
+        "cityStreet": "רמת גן_התובל",
         "deals": [
             {
                 "buildYear": 1998,
@@ -415,7 +415,7 @@ async def get_street_deals(
                 "rooms": 4,
                 "saleDate": "2024-05-15",
                 "squareMeters": 120,
-                "streetName": "רות"
+                "streetName": "התובל"
             },
             ...
         ],

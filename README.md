@@ -25,7 +25,7 @@ from pynadlan.api import (
 
 async def main():
     # Location search - dynamic autocomplete with market data
-    search = await get_locations_search("רות", per_page=5)
+    search = await get_locations_search("דיזנגוף", per_page=5)
     # => {"results": [...], "pagination": {...}, "summary": {...}}
 
     # Use search results to fetch detailed data
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 **Recommended workflow:**
 ```python
 # Search for locations
-results = await get_locations_search("רות")
+results = await get_locations_search("דיזנגוף")
 
 # Get detailed data based on location type
 location = results["results"][0]

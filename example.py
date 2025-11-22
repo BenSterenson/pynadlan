@@ -12,8 +12,8 @@ from pynadlan.api import (
 async def main():
     # Location search - dynamic autocomplete with market data
     print("--- Location Search ---")
-    search_results = await get_locations_search("דיזינגוף", per_page=3)
-    print(f"Searching for 'דיזינגוף': {search_results['pagination']['total']} total results")
+    search_results = await get_locations_search("דיזנגוף", per_page=3)
+    print(f"Searching for 'דיזנגוף': {search_results['pagination']['total']} total results")
     print(f"Summary: {search_results['summary']['total_cities']} cities, "
           f"{search_results['summary']['total_neighborhoods']} neighborhoods, "
           f"{search_results['summary']['total_streets']} streets")
