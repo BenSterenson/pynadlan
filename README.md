@@ -19,10 +19,23 @@ from pynadlan.api import (
     get_neighborhoods_summary,
     get_city_timeseries,
     get_street_deals,
+    get_locations_search,
     get_autocomplete_lists
 )
 
 async def main():
+    # Location search - dynamic autocomplete with market data
+    search = await get_locations_search("רות", per_page=5)
+    # => {"results": [...], "pagination": {...}, "summary": {...}}
+
+    # Use search results to fetch detailed data
+    location = search["results"][0]
+    if location["type"] == "street":
+        city_street = f"{location['city']}_{location['street']}"
+        deals = await get_street_deals(city_street)
+    elif location["type"] in ["neighborhood", "city"]:
+        prices = await get_avg_prices(location["display_name"])
+
     # Historical price queries (histogram data)
     query = "רמת גן"
     sell_latest = await get_avg_prices(query)
@@ -56,6 +69,32 @@ if __name__ == "__main__":
 ```
 
 ### API Reference
+
+#### Location Search
+
+**`get_locations_search(query: str, page: int = 1, per_page: int = 20, min_deals: int | None = None, location_type: str = "all") -> dict`**
+- Search for locations (cities, neighborhoods, streets) matching a query string
+- Provides dynamic autocomplete with real-time market data
+- `query`: Search string in Hebrew or English
+- `page`: Page number for pagination (default: 1)
+- `per_page`: Results per page (default: 20)
+- `min_deals`: Optional minimum number of deals to filter results
+- `location_type`: Filter by type - `"all"`, `"city"`, `"neighborhood"`, `"street"` (default: `"all"`)
+- Returns: `results` array with location details, `pagination` info, `summary` statistics
+- Each result includes: `type`, `name`, `display_name`, `city`, `neighborhood`/`street`, `median_price`, `total_deals`, `date_range`
+
+**Recommended workflow:**
+```python
+# Search for locations
+results = await get_locations_search("רות")
+
+# Get detailed data based on location type
+location = results["results"][0]
+if location["type"] == "street":
+    deals = await get_street_deals(f"{location['city']}_{location['street']}")
+elif location["type"] in ["neighborhood", "city"]:
+    prices = await get_avg_prices(location["display_name"])
+```
 
 #### Historical Price Data (Histogram-based)
 

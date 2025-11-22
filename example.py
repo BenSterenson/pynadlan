@@ -1,9 +1,29 @@
 import asyncio
-from pynadlan.api import get_autocomplete_lists, get_cities_summary, get_neighborhoods_summary, get_city_timeseries, get_street_deals
+from pynadlan.api import (
+    get_autocomplete_lists,
+    get_cities_summary,
+    get_neighborhoods_summary,
+    get_city_timeseries,
+    get_street_deals,
+    get_locations_search
+)
 
 
 async def main():
+    # Location search - dynamic autocomplete with market data
+    print("--- Location Search ---")
+    search_results = await get_locations_search("חרוזים", per_page=3)
+    print(f"Searching for 'רות': {search_results['pagination']['total']} total results")
+    print(f"Summary: {search_results['summary']['total_cities']} cities, "
+          f"{search_results['summary']['total_neighborhoods']} neighborhoods, "
+          f"{search_results['summary']['total_streets']} streets")
+    print("\nTop 3 results:")
+    for i, location in enumerate(search_results['results'], 1):
+        print(f"  {i}. {location['display_name']} ({location['type']})")
+        print(f"     Median Price: ₪{location['median_price']:,}, Deals: {location['total_deals']}")
+
     # Autocomplete lists (static)
+    print("\n--- Static Autocomplete Lists ---")
     lists = get_autocomplete_lists()
     print("First 5 cities:", lists["cities"][:5])
     print("First 5 cities+neighborhoods:", lists["cities_and_neighborhoods"][:5])
