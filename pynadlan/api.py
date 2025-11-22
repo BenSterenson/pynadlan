@@ -401,8 +401,8 @@ async def get_street_deals(
     Example return:
     {
         "city": "רמת גן",
-        "street": "רות",
-        "cityStreet": "רמת גן_רות",
+        "street": "התובל",
+        "cityStreet": "רמת גן_התובל",
         "deals": [
             {
                 "buildYear": 1998,
@@ -415,7 +415,7 @@ async def get_street_deals(
                 "rooms": 4,
                 "saleDate": "2024-05-15",
                 "squareMeters": 120,
-                "streetName": "רות"
+                "streetName": "התובל"
             },
             ...
         ],
@@ -448,6 +448,152 @@ async def get_street_deals(
         'origin': 'https://www.dirobot.co.il',
         'pragma': 'no-cache',
         'referer': 'https://www.dirobot.co.il/',
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
+    }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+
+async def get_locations_search(
+    query: str,
+    page: int = 1,
+    per_page: int = 20,
+    min_deals: Optional[int] = None,
+    location_type: str = "all"
+) -> dict[str, Any]:
+    """
+    Search for locations (cities, neighborhoods, streets) matching a query string.
+
+    This is the recommended way to search for locations before fetching prices,
+    as it provides autocomplete functionality with actual market data.
+
+    Args:
+        query: Search query string (Hebrew or English)
+        page: Page number for pagination (default: 1)
+        per_page: Number of results per page (default: 20, max recommended: 100)
+        min_deals: Optional minimum number of deals to filter results (default: None)
+        location_type: Filter by location type - "all", "city", "neighborhood", "street" (default: "all")
+
+    Returns:
+        Dictionary containing:
+        - query: The search query used
+        - filters: Applied filters (min_deals, type)
+        - pagination: Pagination info with:
+            - page: Current page number
+            - per_page: Results per page
+            - total: Total number of results
+            - total_pages: Total number of pages
+            - has_next: Whether there's a next page
+            - has_prev: Whether there's a previous page
+        - results: List of location objects, each with:
+            - type: Location type ("city", "neighborhood", or "street")
+            - name: Location name (Hebrew)
+            - display_name: Full display name with context (e.g., "רות, רמת גן")
+            - city: City name (Hebrew)
+            - neighborhood: Neighborhood name (Hebrew, if applicable)
+            - street: Street name (Hebrew, for street type)
+            - median_price: Median price for this location
+            - total_deals: Number of recorded deals
+            - date_range: Date range of deals (e.g., "2021-11-08 to 2025-07-15")
+            - url: Relative URL path for this location on dirobot.co.il
+            - unique_streets: Number of unique streets (for neighborhoods)
+            - unique_house_numbers: Number of unique house numbers (for streets)
+        - summary: Aggregated counts:
+            - total_results: Total matching results
+            - total_cities: Number of unique cities in results
+            - total_neighborhoods: Number of neighborhoods in results
+            - total_streets: Number of streets in results
+
+    Example return:
+    {
+        "query": "רות",
+        "filters": {"min_deals": null, "type": "all"},
+        "pagination": {
+            "page": 1,
+            "per_page": 20,
+            "total": 685,
+            "total_pages": 35,
+            "has_next": true,
+            "has_prev": false
+        },
+        "results": [
+            {
+                "type": "street",
+                "name": "רות",
+                "display_name": "רות, רמת גן",
+                "city": "רמת גן",
+                "neighborhood": "חרוזים",
+                "street": "רות",
+                "median_price": 4276999,
+                "total_deals": 40,
+                "date_range": "2021-11-08 to 2025-07-15",
+                "url": "/street-prices/רמת גן, רות",
+                "unique_house_numbers": 10
+            },
+            {
+                "type": "neighborhood",
+                "name": "חרוזים",
+                "display_name": "חרוזים, רמת גן",
+                "city": "רמת גן",
+                "neighborhood": "חרוזים",
+                "median_price": 3710000,
+                "total_deals": 152,
+                "date_range": "2023-10-18 to 2025-08-18",
+                "url": "/neighborhood-prices/רמת גן, חרוזים",
+                "unique_streets": 15
+            }
+        ],
+        "summary": {
+            "total_results": 685,
+            "total_cities": 5,
+            "total_neighborhoods": 31,
+            "total_streets": 649
+        }
+    }
+
+    Usage example:
+        # Search for locations matching "רות"
+        results = await get_locations_search("רות")
+
+        # Get the first result and fetch detailed prices
+        location = results["results"][0]
+        if location["type"] == "street":
+            # For streets, use city_street format
+            city_street = f"{location['city']}_{location['street']}"
+            deals = await get_street_deals(city_street)
+        elif location["type"] == "neighborhood":
+            # For neighborhoods, use display_name or city_neighborhood format
+            prices = await get_avg_prices(location["display_name"])
+    """
+    # URL-encode the query
+    encoded_query = quote(query, safe="")
+
+    # Build query parameters
+    params = f"q={encoded_query}&page={page}&per_page={per_page}"
+    if min_deals is not None:
+        params += f"&min_deals={min_deals}"
+    if location_type != "all":
+        params += f"&type={location_type}"
+
+    url = f"https://api.dirobot.co.il/api/v2/locations-search?{params}"
+
+    headers = {
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9,he-IL;q=0.8,he;q=0.7',
+        'cache-control': 'no-cache',
+        'origin': 'https://www.dirobot.co.il',
+        'pragma': 'no-cache',
+        'priority': 'u=1, i',
+        'referer': 'https://www.dirobot.co.il/',
+        'sec-ch-ua': '"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"macOS"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site',
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36'
     }
 
